@@ -1,6 +1,7 @@
 "use client";
 import axios from "axios";
 import React from "react";
+import qs from "query-string";
 import {
   Dialog,
   DialogContent,
@@ -32,7 +33,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { createChannelSchema } from "@/lib/form-schema";
 import { z } from "zod";
 import FileUpload from "./file-upload";
-import { useRouter } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { useModal } from "@/hooks/use-modal-store";
 import { ChannelType } from "@prisma/client";
 
@@ -41,6 +42,7 @@ type Props = {};
 const CreateChannelModal = (props: Props) => {
   const { isOpen, onClose, type } = useModal();
   const router = useRouter();
+  const params = useParams();
 
   const isModalOpen = isOpen && type === "createChannel";
 
@@ -56,7 +58,13 @@ const CreateChannelModal = (props: Props) => {
 
   const onSubmit = async (values: z.infer<typeof createChannelSchema>) => {
     try {
-      await axios.post("/api/servers", values);
+      const url = qs.stringifyUrl({
+        url: "/api/channels",
+        query: {
+          serverId: params?.serverId,
+        },
+      });
+      await axios.post(url, values);
       form.reset();
       router.refresh();
       onClose();
