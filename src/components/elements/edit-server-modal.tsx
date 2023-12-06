@@ -1,6 +1,6 @@
 "use client";
 import axios from "axios";
-import React from "react";
+import React, { useEffect } from "react";
 import {
   Dialog,
   DialogContent,
@@ -29,11 +29,12 @@ import { useModal } from "@/hooks/use-modal-store";
 
 type Props = {};
 
-const CreateServerModal = (props: Props) => {
-  const { isOpen, onClose, type } = useModal();
+const EditServerModal = (props: Props) => {
+  const { isOpen, onClose, type, data } = useModal();
   const router = useRouter();
 
-  const isModalOpen = isOpen && type === "createServer";
+  const isModalOpen = isOpen && type === "editServer";
+  const { server } = data;
 
   const form = useForm<z.infer<typeof createServerSchema>>({
     resolver: zodResolver(createServerSchema),
@@ -43,11 +44,18 @@ const CreateServerModal = (props: Props) => {
     },
   });
 
+  useEffect(() => {
+    if (server) {
+      form.setValue("name", server.name);
+      form.setValue("imageUrl", server.imageUrl);
+    }
+  }, [server, form]);
+
   const isLoading = form.formState.isSubmitting;
 
   const onSubmit = async (values: z.infer<typeof createServerSchema>) => {
     try {
-      await axios.post("/api/servers", values);
+      await axios.patch(`/api/servers/${server?.id}`, values);
       form.reset();
       router.refresh();
       onClose();
@@ -66,7 +74,7 @@ const CreateServerModal = (props: Props) => {
       <DialogContent>
         <DialogHeader>
           <DialogTitle className="text-center text-2xl">
-            Customize your server
+            Customize your server?
           </DialogTitle>
           <DialogDescription className="text-center">
             Give your server a personality with a name and image. You can always
@@ -108,7 +116,7 @@ const CreateServerModal = (props: Props) => {
             />
             <div className="text-right">
               <Button disabled={isLoading} type="submit">
-                Create
+                Save
               </Button>
             </div>
           </form>
@@ -118,4 +126,4 @@ const CreateServerModal = (props: Props) => {
   );
 };
 
-export default CreateServerModal;
+export default EditServerModal;
