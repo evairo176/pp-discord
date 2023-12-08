@@ -1,5 +1,6 @@
 import { currentUser, redirectToSignIn } from "@clerk/nextjs";
 import { db } from "./prisma";
+import { generateUsername } from "@/helper/generate-random-name";
 
 export const initialProfile = async () => {
   const user = await currentUser();
@@ -17,11 +18,17 @@ export const initialProfile = async () => {
   if (profile) {
     return profile;
   }
+  let name = "";
+  if (!user.firstName && !user.lastName) {
+    name = generateUsername(user.emailAddresses[0].emailAddress);
+  } else {
+    name = `${user.firstName} ${user.lastName}`;
+  }
 
   const newProfile = await db.profile.create({
     data: {
       userId: user.id,
-      name: `${user.firstName} ${user.lastName}`,
+      name: name,
       imageUrl: user.imageUrl,
       email: user.emailAddresses[0].emailAddress,
     },
