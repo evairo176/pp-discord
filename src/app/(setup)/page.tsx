@@ -25,7 +25,6 @@ const SetupPage = async (props: Props) => {
   return (
     <div>
       <InitialModal />
-      <UserButton afterSignOutUrl="/" />
     </div>
   );
 };

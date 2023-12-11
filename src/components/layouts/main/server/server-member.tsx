@@ -27,8 +27,13 @@ const ServerMember = ({ member, server }: ServerMemberInterface) => {
   const router = useRouter();
 
   const icon = roleIconMap[member.role];
+
+  const onClick = () => {
+    router.push(`/servers/${params?.serverId}/conversations/${member.id}`);
+  };
   return (
     <Button
+      onClick={onClick}
       variant={params?.memberId === member.id ? "secondary" : "ghost"}
       className={cn(
         "group px-2 py-2 rounded-md flex items-center gap-x-2 w-full mb-1 justify-start transition"
