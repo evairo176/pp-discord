@@ -21,3 +21,15 @@ export const createChannelSchema = z.object({
     }),
   type: z.nativeEnum(ChannelType),
 });
+
+export const chatInputSchema = z.object({
+  content: z.string().min(1, {
+    message: "Message is required.",
+  }),
+});
+
+export const messageFileSchema = z.object({
+  fileUrl: z.string().min(1, {
+    message: "Chat image is required.",
+  }),
+});
