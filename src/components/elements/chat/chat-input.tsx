@@ -13,10 +13,10 @@ import {
   FormItem,
   FormMessage,
 } from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
 import { Plus } from "lucide-react";
 import { useModal } from "@/hooks/use-modal-store";
 import EmojiPicker from "@/components/elements/emoji-picker";
-import { Input } from "@/components/ui/input";
 
 interface ChatInputInterface {
   apiUrl: string;
@@ -45,6 +45,7 @@ const ChatInput = ({ apiUrl, query, name, type }: ChatInputInterface) => {
       });
 
       await axios.post(url, values);
+      form.reset();
     } catch (error) {
       console.log(error);
     }

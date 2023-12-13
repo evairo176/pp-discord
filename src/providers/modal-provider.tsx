@@ -10,6 +10,7 @@ import EditChannelModal from "@/components/elements/edit-channel-modal";
 import InviteModal from "@/components/elements/invite-modal";
 import MemberModal from "@/components/elements/member-modal";
 import MessageFileModal from "@/components/elements/message-file-modal";
+import DeleteMessageModal from "@/components/elements/delete-message-modal";
 
 type Props = {};
 
@@ -36,6 +37,7 @@ const ModalProvider = ({}: Props) => {
       <DeleteChannelModal />
       <EditChannelModal />
       <MessageFileModal />
+      <DeleteMessageModal />
     </>
   );
 };

@@ -1,11 +1,28 @@
 "use client";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import axios from "axios";
+import qs from "query-string";
 import { Member, MemberRole, Profile } from "@prisma/client";
 import UserAvatar from "../user-avatar";
 import ActionTooltip from "../action-tooltip";
 import { Edit, FileIcon, ShieldAlert, ShieldCheck, Trash } from "lucide-react";
 import Image from "next/image";
 import { cn } from "@/lib/utils";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { chatInputSchema } from "@/lib/form-schema";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { useModal } from "@/hooks/use-modal-store";
+import { useParams, useRouter } from "next/navigation";
 
 interface ChatItemInterface {
   id: string;
@@ -41,7 +58,62 @@ const ChatItem = ({
   socketQuery,
 }: ChatItemInterface) => {
   const [isEditing, setIsEditing] = useState<boolean>(false);
-  const [isDeleting, setIsDeleting] = useState<boolean>(false);
+  const { onOpen } = useModal();
+
+  const router = useRouter();
+  const params = useParams();
+
+  const onMemberClick = () => {
+    if (member.id === currentMember.id) {
+      return;
+    }
+
+    console.log("adwd");
+
+    router.push(`/servers/${params?.serverId}/conversations/${member.id}`);
+  };
+
+  useEffect(() => {
+    const handleKeyDown = (event: any) => {
+      if (event.key === "Escape" || event.keyCode === 27) {
+        setIsEditing(false);
+      }
+    };
+
+    window.addEventListener("keyup", handleKeyDown);
+
+    return window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
+  const form = useForm<z.infer<typeof chatInputSchema>>({
+    resolver: zodResolver(chatInputSchema),
+    defaultValues: {
+      content: content,
+    },
+  });
+
+  const isLoading = form.formState.isSubmitting;
+
+  const onSubmit = async (values: z.infer<typeof chatInputSchema>) => {
+    try {
+      const url = qs.stringifyUrl({
+        url: `${socketUrl}/${id}`,
+        query: socketQuery,
+      });
+
+      await axios.patch(url, values);
+      form.reset();
+      setIsEditing(false);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    form.reset({
+      content: content,
+    });
+  }, [content]);
 
   const fileType = fileUrl?.split(".").pop();
 
@@ -53,15 +125,26 @@ const ChatItem = ({
   const isPDF = fileType === "pdf" && fileUrl;
   const isImage = !isPDF && fileUrl;
   return (
-    <div className="relative group flex items-center p-4 transition w-full hover:bg-muted">
+    <div
+      className={cn(
+        "relative group flex items-center p-4 transition w-full",
+        isEditing ? "hover:bg-muted/70" : "hover:bg-muted/30"
+      )}
+    >
       <div className="group flex gap-x-2 items-start w-full">
-        <div className="cursor-pointer hover:drop-shadow-md transition">
+        <div
+          onClick={onMemberClick}
+          className="cursor-pointer hover:drop-shadow-md transition"
+        >
           <UserAvatar src={member.profile.imageUrl} />
         </div>
         <div className="flex flex-col w-full">
           <div className="flex item-center gap-x-2">
             <div className="flex items-center">
-              <p className="font-semibold text-sm hover:underline cursor-pointer">
+              <p
+                onClick={onMemberClick}
+                className="font-semibold text-sm hover:underline cursor-pointer"
+              >
                 {member.profile.name}
               </p>
               <ActionTooltip label={member.role}>
@@ -114,6 +197,40 @@ const ChatItem = ({
               )}
             </p>
           )}
+          {!fileUrl && isEditing && (
+            <Form {...form}>
+              <form
+                className="flex items-center w-full gap-x-2 pt-2"
+                onSubmit={form.handleSubmit(onSubmit)}
+              >
+                <FormField
+                  control={form.control}
+                  name="content"
+                  render={({ field }) => (
+                    <FormItem className="flex-1">
+                      <FormControl>
+                        <div className="relative w-full ">
+                          <Input
+                            {...field}
+                            disabled={isLoading}
+                            placeholder="Edited message"
+                            className="p-2 border-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0 bg-muted"
+                          />
+                        </div>
+                      </FormControl>
+                      <FormMessage />
+                    </FormItem>
+                  )}
+                />
+                <Button disabled={isLoading} size={"sm"}>
+                  Save
+                </Button>
+              </form>
+              <span className="text-[10px] mt-1">
+                Press escape to cancel, enter to save
+              </span>
+            </Form>
+          )}
         </div>
       </div>
       {canDeleteMessage && (
@@ -127,7 +244,15 @@ const ChatItem = ({
             </ActionTooltip>
           )}
           <ActionTooltip label="Delete">
-            <Trash className="cursor-pointer ml-auto w-4 h-4 text-rose-500 hover:text-rose-600" />
+            <Trash
+              onClick={() =>
+                onOpen("deleteMessage", {
+                  apiUrl: `${socketUrl}/${id}`,
+                  query: socketQuery,
+                })
+              }
+              className="cursor-pointer ml-auto w-4 h-4 text-rose-500 hover:text-rose-600"
+            />
           </ActionTooltip>
         </div>
       )}
