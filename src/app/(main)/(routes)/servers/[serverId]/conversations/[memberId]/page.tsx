@@ -30,6 +30,7 @@ const MemberIdPage = async ({ params }: MemberIdPageInterface) => {
     },
   });
 
+  // check current member
   if (!currentMember) {
     return redirect(`/`);
   }
