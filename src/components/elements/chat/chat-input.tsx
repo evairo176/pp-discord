@@ -70,12 +70,12 @@ const ChatInput = ({ apiUrl, query, name, type }: ChatInputInterface) => {
                       <Plus className="text-primary-foreground" />
                     </button>
                     <Input
-                      disabled={isLoading}
                       className="px-14 py-6 bg-muted border-none border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
                       placeholder={`Message ${
                         type === "conversation" ? name : "#" + name
                       }`}
                       {...field}
+                      disabled={isLoading}
                     />
                     <div className="absolute top-7 right-8">
                       <EmojiPicker
