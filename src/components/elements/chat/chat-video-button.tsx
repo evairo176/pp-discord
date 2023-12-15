@@ -15,6 +15,7 @@ const ChatVideoButton = (props: Props) => {
   const Icon = isVideo ? VideoOff : Video;
   const tooltipLabel = isVideo ? "End video call" : "Start video call";
 
+  // click button
   const onClick = () => {
     const url = qs.stringifyUrl(
       {
